@@ -12,7 +12,7 @@ func main() {
 	log.Printf("Running stub container for %s service", appName)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "stub container for %s service", appName)
+		fmt.Fprintf(w, "stub container for %s service\n", appName)
 	})
 
 	addr := getListenAddr()
