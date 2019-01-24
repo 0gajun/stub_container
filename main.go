@@ -35,20 +35,17 @@ func newCatchAllHandler() http.HandlerFunc {
 func newNetTestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		target := vars["host"] + ":" + vars["port"]
+		host := vars["host"]
+		port := vars["port"]
 
-		timeout := time.Duration(3) * time.Second
-		_, err := net.DialTimeout("tcp", target, timeout)
-
-		if err != nil {
+		if !isReachable(host, port) {
 			w.WriteHeader(http.StatusGatewayTimeout)
-			fmt.Fprintf(w, "Failed to establish tcp connection to %s\n", target)
+			fmt.Fprintf(w, "Failed to establish tcp connection to %s:%s\n", host, port)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Successfully established tcp connection to %s\n", target)
-
+		fmt.Fprintf(w, "Successfully established tcp connection to %s:%s\n", host, port)
 	}
 }
 
@@ -66,4 +63,15 @@ func getAppName() string {
 		return "undefined"
 	}
 	return name
+}
+
+func isReachable(host, port string) bool {
+	timeout := time.Duration(3) * time.Second
+	conn, err := net.DialTimeout("tcp", host+":"+port, timeout)
+	if err != nil {
+		return false
+	}
+
+	defer conn.Close()
+	return true
 }
