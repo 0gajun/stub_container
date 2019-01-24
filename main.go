@@ -5,18 +5,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
+
 	appName := getAppName()
 	log.Printf("Running stub container for %s service", appName)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "stub container for %s service\n", appName)
 	})
 
 	addr := getListenAddr()
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("unexpected error : %v", err)
 	}
 }
