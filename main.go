@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -19,6 +21,8 @@ func main() {
 	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "stub container for %s service\n", appName)
 	})
+
+	r.HandleFunc("/nettest/{host}/{port:[0-9]+}", netTestHandler)
 
 	addr := getListenAddr()
 	if err := http.ListenAndServe(addr, r); err != nil {
@@ -39,4 +43,21 @@ func getAppName() string {
 		return "undefined"
 	}
 	return name
+}
+
+func netTestHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	target := vars["host"] + ":" + vars["port"]
+
+	timeout := time.Duration(3) * time.Second
+	_, err := net.DialTimeout("tcp", target, timeout)
+
+	if err != nil {
+		w.WriteHeader(http.StatusGatewayTimeout)
+		fmt.Fprintf(w, "Failed to establish tcp connection to %s\n", target)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Successfully established tcp connection to %s\n", target)
 }
