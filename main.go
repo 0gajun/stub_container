@@ -12,16 +12,14 @@ import (
 )
 
 func main() {
-
 	appName := getAppName()
 	log.Printf("Running stub container for %s service", appName)
 
+	healthCheckPath := getHealthCheckPath()
+
 	r := mux.NewRouter()
-
-	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "stub container for %s service\n", appName)
-	})
-
+	r.HandleFunc("/", rootHandler)
+	r.HandleFunc(healthCheckPath, healthCheckHandler)
 	r.HandleFunc("/nettest/{host}/{port:[0-9]+}", netTestHandler)
 
 	addr := getListenAddr()
@@ -43,6 +41,23 @@ func getAppName() string {
 		return "undefined"
 	}
 	return name
+}
+
+func getHealthCheckPath() string {
+	path, found := os.LookupEnv("HEALTH_CHECK_PATH")
+	if !found {
+		return "/health_check"
+	}
+	return path
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	appName := getAppName()
+	fmt.Fprintf(w, "stub container for %s service\n", appName)
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "ok\n")
 }
 
 func netTestHandler(w http.ResponseWriter, r *http.Request) {
