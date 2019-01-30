@@ -5,7 +5,7 @@ ENV GO111MODULE on
 WORKDIR /go/src/app
 COPY . .
 
-RUN go install -v .
+RUN go install -a -tags netgo -installsuffix netgo -ldflags='-extldflags="static"' -v .
 
 FROM alpine
 COPY --from=build /go/bin/stub_container /
