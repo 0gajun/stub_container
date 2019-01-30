@@ -7,6 +7,7 @@ COPY . .
 
 RUN go install -v .
 
-FROM gcr.io/distroless/base
+FROM alpine
 COPY --from=build /go/bin/stub_container /
+RUN apk --no-cache add --update curl
 CMD ["/stub_container"]
