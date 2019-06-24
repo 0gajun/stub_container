@@ -20,10 +20,19 @@ func main() {
 	r.PathPrefix("/").HandlerFunc(newCatchAllHandler())
 
 	addr := getListenAddr()
-	if err := http.ListenAndServe(addr, r); err != nil {
+	if err := listenAndServe(addr, r, shouldListenHTTPS()); err != nil {
 		log.Fatalf("unexpected error : %v", err)
 	}
 }
+
+func listenAndServe(addr string, handler http.Handler, ssl bool) error {
+	if ssl {
+		return http.ListenAndServeTLS(addr, "/server.crt", "/server.key", handler)
+	}
+
+	return http.ListenAndServe(addr, handler)
+}
+
 func newCatchAllHandler() http.HandlerFunc {
 	appName := getAppName()
 
@@ -63,6 +72,11 @@ func getAppName() string {
 		return "undefined"
 	}
 	return name
+}
+
+func shouldListenHTTPS() bool {
+	val, found := os.LookupEnv("LISTEN_HTTPS")
+	return found && val == "true"
 }
 
 func isReachable(host, port string) bool {

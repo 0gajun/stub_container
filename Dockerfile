@@ -9,5 +9,6 @@ RUN go install -a -tags netgo -installsuffix netgo -ldflags='-extldflags="static
 
 FROM alpine
 COPY --from=build /go/bin/stub_container /
+COPY server.crt server.key /
 RUN apk --no-cache add --update curl
 CMD ["/stub_container"]
